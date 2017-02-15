@@ -31,8 +31,8 @@ def handler(event, context):
     # We need to use a verified email address rather than relying on the source
     logger.info("Retrieving environment settings...")
     email_from = os.environ['FromAddress']
-    filter_addresses = os.environ['FilterAddresses'].split(",")
-    forwarding_addresses = os.environ['ForwardingAddresses'].split(",")
+    filter_addresses = [address.strip() for address in os.environ['FilterAddresses'].split(",")]
+    forwarding_addresses = [address.strip() for address in os.environ['ForwardingAddresses'].split(",")]
     # Filter out addresses
     filtered_addresses = [address for address in message_destination if address in filter_addresses]
     
@@ -40,7 +40,7 @@ def handler(event, context):
         logger.debug("No filtering addresses found, skipping message...")
         return ("CONTINUE")    
     logger.info("Found filtering addresses {}, "
-                "forwarding the message...".format(filtered_addresses))
+                "forwarding the message...".format(','.join(filtered_addresses)))
 
     email_object = email.message_from_string(email_data)
     email_subject = email_object.get('Subject', 'Verification message for ACM')
@@ -78,6 +78,6 @@ def handler(event, context):
             },
         ],
     )
-    logger.info("Sent verification email successfully to {}".format(forwarding_addresses))
+    logger.info("Sent verification email successfully to {}".format(','.join(forwarding_addresses)))
 
     return "CONTINUE"
